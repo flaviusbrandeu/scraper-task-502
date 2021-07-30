@@ -69,7 +69,7 @@ class RabbitMQReader(object):
                     print(f"[{word}] -> {data['url']}")
 
         self.channel.basic_consume(queue=self.queue, on_message_callback=callback, auto_ack=True)
-        print(' [*] Waiting for messages. To exit press CTRL+C')
+        print('Waiting for messages. To exit press CTRL+C')
         self.channel.start_consuming()
 
 
