@@ -3,7 +3,7 @@ from abc import ABC
 from scrapy.crawler import CrawlerProcess
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
-from ..items import ScrapperItem
+from keywords_scrapper.items import ScrapperItem
 
 
 class WebsiteSpider(CrawlSpider, ABC):
@@ -15,9 +15,10 @@ class WebsiteSpider(CrawlSpider, ABC):
 
     def send_item_to_db(self, response):
         self.__class__.crawl_count += 1
-        item = ScrapperItem()
-        item['url'] = response.url
-        return item
+        scraper_item = ScrapperItem()
+        scraper_item['url'] = response.url
+        scraper_item['text'] = response.text
+        return scraper_item
 
     def _requests_to_follow(self, response):
         if getattr(response, "encoding", None) is not None:
