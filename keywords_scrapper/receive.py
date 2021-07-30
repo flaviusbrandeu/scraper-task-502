@@ -46,6 +46,32 @@ class RabbitMQReader(object):
         print(' [*] Waiting for messages. To exit press CTRL+C')
         self.channel.start_consuming()
 
+    @staticmethod
+    def find_all_substrings(string, sub):
+        import re
+        starts = [match.start() for match in re.finditer(re.escape(sub), string)]
+        return starts
+
+    def check_keywords(self):
+        words = [
+            "mentor",
+            "Blog",
+            "Developer to Manager",
+        ]
+
+        def callback(ch, method, properties, body):
+            json_content = body.decode('utf8')
+            data = json.loads(json_content)
+            webpage_text = data['text']
+            for word in words:
+                substrings = self.find_all_substrings(webpage_text, word)
+                for _ in substrings:
+                    print(f"[{word}] -> {data['url']}")
+
+        self.channel.basic_consume(queue=self.queue, on_message_callback=callback, auto_ack=True)
+        print(' [*] Waiting for messages. To exit press CTRL+C')
+        self.channel.start_consuming()
+
 
 if __name__ == '__main__':
     try:
@@ -60,7 +86,7 @@ if __name__ == '__main__':
             routing_key=settings.get("RABBITMQ_ROUTING_KEY"),
             queue=settings.get("RABBITMQ_QUEUE")
         )
-        rabbitmq_reader.print_urls()
+        rabbitmq_reader.check_keywords()
     except KeyboardInterrupt:
         print('Interrupted')
         try:
