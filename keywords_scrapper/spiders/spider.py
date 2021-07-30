@@ -3,46 +3,21 @@ from abc import ABC
 from scrapy.crawler import CrawlerProcess
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
-from scrapy.item import Item
-
-
-def find_all_substrings(string, sub):
-    import re
-    starts = [match.start() for match in re.finditer(re.escape(sub), string)]
-    return starts
+from ..items import ScrapperItem
 
 
 class WebsiteSpider(CrawlSpider, ABC):
     name = "webcrawler"
     allowed_domains = ["devtomanager.com"]
     start_urls = ["https://devtomanager.com"]
-    rules = [Rule(LinkExtractor(), follow=True, callback="check_keywords")]
-
+    rules = [Rule(LinkExtractor(), follow=True, callback="send_item_to_db")]
     crawl_count = 0
-    words_found = 0
 
-    def check_keywords(self, response):
-
+    def send_item_to_db(self, response):
         self.__class__.crawl_count += 1
-
-        crawl_count = self.__class__.crawl_count
-
-        words = [
-            "mentor",
-            "Blog",
-            "Developer to Manager",
-        ]
-
-        url = response.url
-        content_type = response.headers.get("content-type", "").decode('utf-8').lower()
-        data = response.body.decode('utf-8')
-
-        for word in words:
-            substrings = find_all_substrings(data, word)
-            for pos in substrings:
-                self.__class__.words_found += 1
-                print(word + "," + url + ",")
-        return Item()
+        item = ScrapperItem()
+        item['url'] = response.url
+        return item
 
     def _requests_to_follow(self, response):
         if getattr(response, "encoding", None) is not None:
